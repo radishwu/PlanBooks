@@ -12,6 +12,16 @@ class HomeApp extends StatelessWidget {
               elevation: 0,
               backgroundColor: Colors.transparent,
               title: new Text('阅读计划'),
+              actions: <Widget>[
+                IconButton(
+                  icon: Icon(
+                    Icons.add,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                  onPressed: () => Navigator.of(context).pushNamed('/create_plan'),
+                )
+              ],
             ),
             body: new Stack(
               children: <Widget>[new HomePage()],
