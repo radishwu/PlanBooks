@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'plan_detail.dart';
+import '../entity/plan_entity.dart';
 
 class HomeApp extends StatelessWidget {
   @override
@@ -19,7 +21,8 @@ class HomeApp extends StatelessWidget {
                     color: Colors.white,
                     size: 30,
                   ),
-                  onPressed: () => Navigator.of(context).pushNamed('/create_plan'),
+                  onPressed: () =>
+                      Navigator.of(context).pushNamed('/create_plan'),
                 )
               ],
             ),
@@ -104,16 +107,13 @@ class CardPageState extends State<CardPage> {
             ),
             child: GestureDetector(
               onTap: () {
-                Scaffold.of(context).showSnackBar(SnackBar(
-                  backgroundColor: Colors.deepOrangeAccent,
-                  duration: Duration(milliseconds: 800),
-                  content: Center(
-                    child: Text(
-                      "哈哈哈哈哈哈",
-                      style: TextStyle(fontSize: 25.0),
-                    ),
-                  ),
-                ));
+                Navigator.push(
+                    context,
+                    new MaterialPageRoute(
+                      builder: (context) => new PlanDetail(
+                          planEntity:
+                              new PlanEntity('2019年读书计划', 50, 4, '2019.12.31')),
+                    ));
               },
               child: new Material(
                 elevation: 5.0,

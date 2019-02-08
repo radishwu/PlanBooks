@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class CreatePlan extends StatefulWidget {
+
   @override
   State<StatefulWidget> createState() => CreatePlanState();
 }

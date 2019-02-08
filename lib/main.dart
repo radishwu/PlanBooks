@@ -5,6 +5,6 @@ import 'ui/create_plan.dart';
 void main() => runApp(MaterialApp(
       home: new HomeApp(),
       routes: <String, WidgetBuilder>{
-        '/create_plan': (BuildContext context) => new CreatePlan()
+        '/create_plan': (BuildContext context) => new CreatePlan(),
       },
     ));
