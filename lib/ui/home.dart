@@ -1,34 +1,77 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'plan_detail.dart';
+import 'create_plan.dart';
 import '../entity/plan_entity.dart';
+import 'dart:ui';
 
 class HomeApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
-        title: '阅读计划',
-        home: new Scaffold(
-            backgroundColor: new Color(0xFF0095D9),
-            appBar: new AppBar(
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              title: new Text('阅读计划'),
-              actions: <Widget>[
-                IconButton(
-                  icon: Icon(
-                    Icons.add,
-                    color: Colors.white,
-                    size: 30,
-                  ),
-                  onPressed: () =>
-                      Navigator.of(context).pushNamed('/create_plan'),
-                )
-              ],
+    return new MaterialApp(home: new HomeAppPage());
+  }
+}
+
+class HomeAppPage extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => new HomeAppBgPage();
+}
+
+class HomeAppBgPage extends State<HomeAppPage> {
+  @override
+  Widget build(BuildContext context) {
+    return new Stack(children: <Widget>[
+      new Container(
+        decoration: new BoxDecoration(
+          image: new DecorationImage(
+              fit: BoxFit.cover,
+              image: AssetImage('images/home_default_bg.jpg')),
+        ),
+      ),
+      new Container(
+          child: new BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+        child: Opacity(
+          opacity: 0.7,
+          child: new Container(
+            decoration: new BoxDecoration(
+              color: Colors.black87,
             ),
-            body: new Stack(
-              children: <Widget>[new HomePage()],
-            )));
+          ),
+        ),
+      )),
+      new _HomeAppPage(),
+    ]);
+  }
+}
+
+class _HomeAppPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: new AppBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          title: new Text('阅读计划'),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(
+                Icons.add,
+                color: Colors.white,
+                size: 30,
+              ),
+              onPressed: () => Navigator.push(
+                  context,
+                  new MaterialPageRoute(
+                    builder: (context) => new CreatePlan(),
+                  )),
+            )
+          ],
+        ),
+        body: new Stack(
+          children: <Widget>[new HomePage()],
+        ));
   }
 }
 
