@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
+import '../db/read_plan_db.dart';
 
 class CreatePlan extends StatefulWidget {
-
   @override
   State<StatefulWidget> createState() => CreatePlanState();
 }
@@ -34,7 +35,42 @@ class CreatePlanState extends State<CreatePlan> {
               '完成',
               style: TextStyle(color: Colors.white, fontSize: 18),
             ),
-            onPressed: () => {},
+            onPressed: () {
+              if (nameEditController.text == null ||
+                  nameEditController.text.trim().isEmpty) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                        content: Text("请输入名称"),
+                      ),
+                );
+              } else if (numEditController.text == null ||
+                  numEditController.text.trim().isEmpty) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                        content: Text("请输入数量"),
+                      ),
+                );
+              } else if (_time == null || _time == "") {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                        content: Text("请选择结束日期"),
+                      ),
+                );
+              } else {
+                DBManager dbManager = new DBManager();
+                Future<int> res = dbManager.insertPlanInfo(
+                    nameEditController.text,
+                    int.parse(numEditController.text),
+                    0,
+                    _time);
+                res.then((int id) {
+                  print(id);
+                });
+              }
+            },
           ),
         ),
         body: new Stack(children: <Widget>[
@@ -68,6 +104,9 @@ class CreatePlanState extends State<CreatePlan> {
                             helperText: '打算搞定多少本书',
                             labelText: '数量'),
                         autofocus: false,
+                        inputFormatters: [
+                          WhitelistingTextInputFormatter.digitsOnly
+                        ],
                         textInputAction: TextInputAction.done,
                       ),
                     ),

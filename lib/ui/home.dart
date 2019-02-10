@@ -4,6 +4,7 @@ import 'plan_detail.dart';
 import 'create_plan.dart';
 import '../entity/plan_entity.dart';
 import 'dart:ui';
+import '../db/read_plan_db.dart';
 
 class HomeApp extends StatelessWidget {
   @override
@@ -92,8 +93,8 @@ class HomePage extends StatelessWidget {
                   child: new SizedBox(
                     width: 60.0,
                     height: 60.0,
-                    child: new Image.network(
-                      "https://sfault-avatar.b0.upaiyun.com/206/120/2061206110-5afe2c9d40fa3_huge256",
+                    child: new Image.asset(
+                      'images/home_default_avatar.png',
                       fit: BoxFit.fill,
                     ),
                   ),
@@ -132,115 +133,184 @@ class CardPage extends StatefulWidget {
 }
 
 class CardPageState extends State<CardPage> {
-  bool isAddGradient = false;
+  bool isLoading = true;
+  List<PlanEntity> planList;
+
+  @override
+  void initState() {
+    super.initState();
+    getPlanList();
+  }
+
+  void getPlanList() {
+    DBManager dbManager = new DBManager();
+    Future<List<PlanEntity>> res = dbManager.getPlanInfo();
+    res.then((List<PlanEntity> planList) {
+      setState(() {
+        isLoading = false;
+        this.planList = planList;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.fromSize(
-      child: PageView.builder(
-        controller: PageController(viewportFraction: 0.8),
-        itemCount: 3,
-        itemBuilder: (BuildContext context, int index) {
-          return Padding(
-            padding: EdgeInsets.only(
-              bottom: 50.0,
-              top: 16.0,
-              left: 10.0,
-              right: 10.0,
+    return SizedBox.fromSize(child: _normalPageView());
+  }
+
+  PageView _normalPageView() {
+    return PageView.builder(
+      controller: PageController(viewportFraction: 0.8),
+      itemCount: _itemCount(),
+      itemBuilder: (BuildContext context, int index) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: 50.0,
+            top: 16.0,
+            left: 10.0,
+            right: 10.0,
+          ),
+          child: GestureDetector(
+            onTap: () {
+              if (isLoading || isPlanEmpty()) return;
+              Navigator.push(
+                  context,
+                  new MaterialPageRoute(
+                    builder: (context) =>
+                        new PlanDetail(planEntity: planList[index]),
+                  ));
+            },
+            child: new Material(
+              elevation: 5.0,
+              child: _widget(index),
+              borderRadius: BorderRadius.circular(8.0),
             ),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                    context,
-                    new MaterialPageRoute(
-                      builder: (context) => new PlanDetail(
-                          planEntity:
-                              new PlanEntity('2019年读书计划', 50, 4, '2019.12.31')),
-                    ));
-              },
-              child: new Material(
-                elevation: 5.0,
-                child: Stack(
-                  children: <Widget>[
-                    new Column(
-                      children: <Widget>[
-                        new Row(
-                          children: <Widget>[
-                            new Container(
-                              padding: const EdgeInsets.only(left: 20, top: 30),
-                              child: new Text(
-                                "结束日期：",
-                                style: new TextStyle(
-                                    fontSize: 16.0,
-                                    color: new Color(0xff666666)),
-                              ),
-                            )
-                          ],
-                        ),
-                        new Row(
-                          children: <Widget>[
-                            new Container(
-                              padding: const EdgeInsets.only(left: 20),
-                              child: new Text(
-                                "2019年12月31日",
-                                style: new TextStyle(
-                                    fontSize: 16.0,
-                                    color: new Color(0xff666666)),
-                              ),
-                            )
-                          ],
-                        ),
-                      ],
-                    ),
-                    new Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[
-                        new Row(
-                          children: <Widget>[
-                            new Container(
-                              padding:
-                                  const EdgeInsets.only(left: 20, bottom: 5),
-                              child: new Text(
-                                "2019年读书计划",
-                                style: new TextStyle(fontSize: 26),
-                              ),
-                            )
-                          ],
-                        ),
-                        new Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: Container(
-                                padding: EdgeInsets.only(
-                                    bottom: 25, left: 20, right: 10),
-                                child: SizedBox(
-                                    height: 3,
-                                    child: new LinearProgressIndicator(
-                                      value: 0.5,
-                                      backgroundColor: Color(0xffeeeeee),
-                                    )),
-                              ),
-                            ),
-                            Container(
-                                padding: EdgeInsets.only(bottom: 25, right: 20),
-                                child: Text(
-                                  "3/50",
-                                  style: new TextStyle(
-                                      fontSize: 12,
-                                      color: new Color(0xff949495)),
-                                )),
-                          ],
-                        )
-                      ],
-                    ),
-                  ],
+          ),
+        );
+      },
+    );
+  }
+
+  int _itemCount() {
+    if (isLoading || planList == null || planList.length == 0) {
+      return 1;
+    } else {
+      return planList.length;
+    }
+  }
+
+  bool isPlanEmpty() {
+    return planList == null || planList.length == 0;
+  }
+
+  Widget _widget(int index) {
+    if (isLoading) {
+      return _loadingView();
+    } else if(isPlanEmpty()) {
+      return _emptyView();
+    } else {
+      return _planView(index);
+    }
+  }
+
+  Widget _planView(int index) {
+    return Stack(
+      children: <Widget>[
+        new Column(
+          children: <Widget>[
+            new Row(
+              children: <Widget>[
+                new Container(
+                  padding: const EdgeInsets.only(left: 20, top: 30),
+                  child: new Text(
+                    "结束日期：",
+                    style: new TextStyle(
+                        fontSize: 16.0, color: new Color(0xff666666)),
+                  ),
+                )
+              ],
+            ),
+            new Row(
+              children: <Widget>[
+                new Container(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: new Text(
+                    planList[index].endDate,
+                    style: new TextStyle(
+                        fontSize: 16.0, color: new Color(0xff666666)),
+                  ),
+                )
+              ],
+            ),
+          ],
+        ),
+        new Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            new Row(
+              children: <Widget>[
+                new Container(
+                  padding: const EdgeInsets.only(left: 20, bottom: 5),
+                  child: new Text(
+                    planList[index].name,
+                    style: new TextStyle(fontSize: 26),
+                  ),
+                )
+              ],
+            ),
+            new Row(
+              children: <Widget>[
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.only(bottom: 25, left: 20, right: 10),
+                    child: SizedBox(
+                        height: 3,
+                        child: new LinearProgressIndicator(
+                          value:
+                              planList[index].current / planList[index].total,
+                          backgroundColor: Color(0xffeeeeee),
+                        )),
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
+                Container(
+                    padding: EdgeInsets.only(bottom: 25, right: 20),
+                    child: Text(
+                      "${planList[index].current}/${planList[index].total}",
+                      style: new TextStyle(
+                          fontSize: 12, color: new Color(0xff949495)),
+                    )),
+              ],
+            )
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _emptyView() {
+    return new Center(
+      child: new Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          new Text(
+            '还没有创建计划',
+            style: TextStyle(color: Color(0xff999999), fontSize: 14),
+          ),
+          new Container(
+            padding: EdgeInsets.only(top: 10),
+            child: new Text(
+              '点击+创建你的读书计划吧',
+              style: TextStyle(color: Color(0xff999999), fontSize: 12),
             ),
-          );
-        },
+          )
+        ],
       ),
+    );
+  }
+
+  Widget _loadingView() {
+    return new Center(
+      child: new CircularProgressIndicator(),
     );
   }
 }
