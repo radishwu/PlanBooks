@@ -14,4 +14,13 @@ class PlanEntity {
     current = map['current'];
     endDate = map['end_date'];
   }
+
+  PlanEntity.formParams(
+      int id, String name, int total, int current, String endDate) {
+    this.id = id;
+    this.name = name;
+    this.total = total;
+    this.current = current;
+    this.endDate = endDate;
+  }
 }

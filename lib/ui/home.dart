@@ -142,7 +142,19 @@ class CardPageState extends State<CardPage> {
     getPlanList();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  void deactivate() {
+    getPlanList();
+    super.deactivate();
+  }
+
   void getPlanList() {
+    print('plan list request.');
     DBManager dbManager = new DBManager();
     Future<List<PlanEntity>> res = dbManager.getPlanInfo();
     res.then((List<PlanEntity> planList) {
@@ -206,7 +218,7 @@ class CardPageState extends State<CardPage> {
   Widget _widget(int index) {
     if (isLoading) {
       return _loadingView();
-    } else if(isPlanEmpty()) {
+    } else if (isPlanEmpty()) {
       return _emptyView();
     } else {
       return _planView(index);

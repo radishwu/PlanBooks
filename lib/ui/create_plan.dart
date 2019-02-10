@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import '../db/read_plan_db.dart';
+import 'plan_detail.dart';
+import '../entity/plan_entity.dart';
 
 class CreatePlan extends StatefulWidget {
   @override
@@ -67,7 +69,18 @@ class CreatePlanState extends State<CreatePlan> {
                     0,
                     _time);
                 res.then((int id) {
-                  print(id);
+                Navigator.pushAndRemoveUntil(
+                    context,
+                    new MaterialPageRoute(
+                      builder: (context) => new PlanDetail(
+                          planEntity: PlanEntity.formParams(
+                              1,
+                              nameEditController.text,
+                              int.parse(numEditController.text),
+                              0,
+                              _time)),
+                    ),
+                    ModalRoute.withName('/'));
                 });
               }
             },
