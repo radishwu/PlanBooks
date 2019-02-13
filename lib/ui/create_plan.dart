@@ -11,8 +11,16 @@ class CreatePlan extends StatefulWidget {
 }
 
 class CreatePlanState extends State<CreatePlan> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   TextEditingController nameEditController = TextEditingController();
   TextEditingController numEditController = TextEditingController();
+
+  void showInSnackBar(String message) {
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Text(message),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,27 +48,12 @@ class CreatePlanState extends State<CreatePlan> {
             onPressed: () {
               if (nameEditController.text == null ||
                   nameEditController.text.trim().isEmpty) {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                        content: Text("请输入名称"),
-                      ),
-                );
+                showInSnackBar("请输入名称");
               } else if (numEditController.text == null ||
                   numEditController.text.trim().isEmpty) {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                        content: Text("请输入数量"),
-                      ),
-                );
+                showInSnackBar("请输入数量");
               } else if (_time == null || _time == "") {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                        content: Text("请选择结束日期"),
-                      ),
-                );
+                showInSnackBar("请选择结束日期");
               } else {
                 DBManager dbManager = new DBManager();
                 Future<int> res = dbManager.insertPlanInfo(
