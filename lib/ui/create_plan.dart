@@ -19,12 +19,13 @@ class CreatePlanState extends State<CreatePlan> {
   void showInSnackBar(String message) {
     _scaffoldKey.currentState.showSnackBar(SnackBar(
       content: Text(message),
-    );
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
+        key: _scaffoldKey,
         backgroundColor: Colors.white,
         appBar: new AppBar(
           leading: IconButton(
@@ -62,18 +63,18 @@ class CreatePlanState extends State<CreatePlan> {
                     0,
                     _time);
                 res.then((int id) {
-                Navigator.pushAndRemoveUntil(
-                    context,
-                    new MaterialPageRoute(
-                      builder: (context) => new PlanDetail(
-                          planEntity: PlanEntity.formParams(
-                              1,
-                              nameEditController.text,
-                              int.parse(numEditController.text),
-                              0,
-                              _time)),
-                    ),
-                    ModalRoute.withName('/'));
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      new MaterialPageRoute(
+                        builder: (context) => new PlanDetail(
+                            planEntity: PlanEntity.formParams(
+                                1,
+                                nameEditController.text,
+                                int.parse(numEditController.text),
+                                0,
+                                _time)),
+                      ),
+                      ModalRoute.withName('/'));
                 });
               }
             },

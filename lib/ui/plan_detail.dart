@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../entity/plan_entity.dart';
-import '../entity/book_entity.dart';
 import '../entity/plan_book_entity.dart';
 import '../db/read_plan_db.dart';
 
@@ -115,24 +114,23 @@ class PlanDetailPage extends State<PlanDetail> {
 
   Widget booksView() {
     return new ListView.builder(
-              itemCount: planBookListl.length,
-              itemBuilder: (context, index) {
-                return new Card(
-                    margin:
-                        const EdgeInsets.only(right: 20, left: 20, bottom: 10),
-                    child: new Container(
-                      child: new CheckboxListTile(
-                        controlAffinity: ListTileControlAffinity.leading,
-                        title: new Text(planBookListl[index].title),
-                        value: planBookListl[index].isRead == 1,
-                        onChanged: (bool value) {
-                          setState(() {
-                            planBookListl[index].isRead = value?1:0;
-                          });
-                        },
-                      ),
-                    ));
-              },
-            );
+      itemCount: planBookListl.length,
+      itemBuilder: (context, index) {
+        return new Card(
+            margin: const EdgeInsets.only(right: 20, left: 20, bottom: 10),
+            child: new Container(
+              child: new CheckboxListTile(
+                controlAffinity: ListTileControlAffinity.leading,
+                title: new Text(planBookListl[index].title),
+                value: planBookListl[index].isRead == 1,
+                onChanged: (bool value) {
+                  setState(() {
+                    planBookListl[index].isRead = value ? 1 : 0;
+                  });
+                },
+              ),
+            ));
+      },
+    );
   }
 }
