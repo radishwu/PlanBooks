@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../entity/plan_entity.dart';
 import '../entity/book_entity.dart';
+import '../entity/plan_book_entity.dart';
+import '../db/read_plan_db.dart';
 
 class PlanDetail extends StatefulWidget {
   final PlanEntity planEntity;
@@ -13,11 +15,28 @@ class PlanDetail extends StatefulWidget {
 
 class PlanDetailPage extends State<PlanDetail> {
   final PlanEntity planEntity;
+  List<PlanBookEntity> planBookListl;
+  bool isLoading = true;
 
   PlanDetailPage(this.planEntity);
 
-  var items = new List<BookEntity>.generate(
-      20, (i) => new BookEntity('title $i', false));
+  @override
+  void initState() {
+    super.initState();
+    requestPlanBooks();
+  }
+
+  void requestPlanBooks() {
+    print('plan book list request.');
+    DBManager dbManager = new DBManager();
+    Future<List<PlanBookEntity>> res = dbManager.getPlanBook(planEntity.id);
+    res.then((List<PlanBookEntity> planBooks) {
+      setState(() {
+        isLoading = false;
+        this.planBookListl = planBooks;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,8 +106,16 @@ class PlanDetailPage extends State<PlanDetail> {
             ],
           ),
           new Expanded(
-            child: new ListView.builder(
-              itemCount: items.length,
+            child: booksView(),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget booksView() {
+    return new ListView.builder(
+              itemCount: planBookListl.length,
               itemBuilder: (context, index) {
                 return new Card(
                     margin:
@@ -96,20 +123,16 @@ class PlanDetailPage extends State<PlanDetail> {
                     child: new Container(
                       child: new CheckboxListTile(
                         controlAffinity: ListTileControlAffinity.leading,
-                        title: new Text(items[index].title),
-                        value: items[index].isRead,
+                        title: new Text(planBookListl[index].title),
+                        value: planBookListl[index].isRead == 1,
                         onChanged: (bool value) {
                           setState(() {
-                            items[index].isRead = value;
+                            planBookListl[index].isRead = value?1:0;
                           });
                         },
                       ),
                     ));
               },
-            ),
-          )
-        ],
-      ),
-    );
+            );
   }
 }

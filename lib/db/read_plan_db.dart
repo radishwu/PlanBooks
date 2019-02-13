@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import '../entity/plan_entity.dart';
+import '../entity/plan_book_entity.dart';
 
 class DBManager {
   static final DBManager _singleton = new DBManager._internal();
@@ -37,7 +38,7 @@ class DBManager {
     Database database = await openDatabase(path, version: 1,
         onCreate: (Database db, int version) async {
       await db.execute(
-          "CREATE TABLE book_info (id INTEGER PRIMARY KEY, plan_id INTEGER, title TEXT, done_date TEXT)");
+          "CREATE TABLE book_info (id INTEGER PRIMARY KEY, plan_id INTEGER, title TEXT, done_date TEXT, is_read INTEGER)");
     });
     return database;
   }
@@ -58,9 +59,29 @@ class DBManager {
     return res;
   }
 
+  Future<int> updatePlanCurrent(int id) async {
+    final db = await _planFile;
+    return await db.rawUpdate('update plan_info set current=current+1 where id=?',[id]);
+  }
+
   Future<int> insertBook(int planId, String bookTitle, String doneDate) async {
     final db = await _bookFile;
     return await db.rawInsert(
-        'INSERT INTO book_info(plan_id, title, done_date) VALUES("$planId", "$bookTitle", "$doneDate")');
+        'INSERT INTO book_info(plan_id, title, done_date, is_read) VALUES("$planId", "$bookTitle", "$doneDate", 0)');
+  }
+
+  Future<List<PlanBookEntity>> getPlanBook(int planId) async {
+    final db = await _bookFile;
+    List<Map> maps = await db.query('book_info',
+        columns:['id','plan_id','title','done_date','is_read'],
+        where:'plan_id=?',
+        whereArgs:[planId]);
+    List<PlanBookEntity> res = maps.map((item) => new PlanBookEntity.formMap(item)).toList();
+    return res;
+  }
+
+  Future<int> updatePlanBookRead(int id) async {
+    final db = await _bookFile;
+    return await db.rawUpdate('update book_info set is_read=1 where id=?',[id]);
   }
 }
