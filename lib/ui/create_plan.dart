@@ -74,7 +74,7 @@ class CreatePlanState extends State<CreatePlan> {
                                 0,
                                 _time)),
                       ),
-                      ModalRoute.withName('/'));
+                      ModalRoute.withName('/home'));
                 });
               }
             },

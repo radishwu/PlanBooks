@@ -45,6 +45,7 @@ flutter:
   assets:
    - images/home_default_bg.jpg
    - images/home_default_avatar.png
+   - images/plan_book_icon.png
   #  - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
