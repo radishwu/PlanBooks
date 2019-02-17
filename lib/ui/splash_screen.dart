@@ -12,7 +12,7 @@ class SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Timer(Duration(seconds: 3),
-        () => Navigator.pushNamed(context, '/home'));
+        () => Navigator.popAndPushNamed(context, '/home'));
   }
 
   @override

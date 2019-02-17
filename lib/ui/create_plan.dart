@@ -26,21 +26,19 @@ class CreatePlanState extends State<CreatePlan> {
   Widget build(BuildContext context) {
     return new Scaffold(
         key: _scaffoldKey,
-        backgroundColor: Colors.white,
         appBar: new AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.black),
+            icon: Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => Navigator.of(context).pop('/create_plan'),
           ),
-          elevation: 0,
-          backgroundColor: Colors.white,
+          elevation: 2,
+          backgroundColor: Colors.black87,
           title: new Text(
             '新建计划',
-            style: TextStyle(color: Colors.black),
           ),
         ),
         bottomNavigationBar: BottomAppBar(
-          color: Color(0xff0095D9),
+          color: Colors.black87,
           child: FlatButton(
             child: new Text(
               '完成',
@@ -74,7 +72,7 @@ class CreatePlanState extends State<CreatePlan> {
                                 0,
                                 _time)),
                       ),
-                      ModalRoute.withName('/home'));
+                      ModalRoute.withName('/'));
                 });
               }
             },
@@ -86,7 +84,7 @@ class CreatePlanState extends State<CreatePlan> {
               new Column(
                 children: <Widget>[
                   new Container(
-                    padding: new EdgeInsets.only(top: 50),
+                    padding: new EdgeInsets.only(top: 20),
                     child: new ListTile(
                       leading: Icon(Icons.bookmark),
                       title: new TextField(

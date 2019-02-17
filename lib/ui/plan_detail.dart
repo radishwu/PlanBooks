@@ -14,7 +14,8 @@ class PlanDetail extends StatefulWidget {
 
 class PlanDetailPage extends State<PlanDetail> {
   final PlanEntity planEntity;
-  List<PlanBookEntity> planBookListl;
+  final DBManager dbManager = new DBManager();
+  List<PlanBookEntity> planBookList;
   bool isLoading = true;
 
   PlanDetailPage(this.planEntity);
@@ -27,30 +28,30 @@ class PlanDetailPage extends State<PlanDetail> {
 
   void requestPlanBooks() {
     print('plan book list request.');
-    DBManager dbManager = new DBManager();
     Future<List<PlanBookEntity>> res = dbManager.getPlanBook(planEntity.id);
     res.then((List<PlanBookEntity> planBooks) {
       setState(() {
         isLoading = false;
-        this.planBookListl = planBooks;
+        planBooks.sort();
+        this.planBookList = planBooks;
       });
     });
   }
 
+  final addBookNameController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      backgroundColor: Colors.white,
       appBar: new AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        elevation: 0,
-        backgroundColor: Colors.white,
+        elevation: 2,
+        backgroundColor: Colors.black87,
         title: new Text(
           planEntity.name,
-          style: TextStyle(color: Colors.black),
         ),
       ),
       body: new Column(
@@ -65,6 +66,7 @@ class PlanDetailPage extends State<PlanDetail> {
               ),
             ),
           ),
+          new Divider(indent: 36),
           new Container(
             padding: const EdgeInsets.only(left: 20, right: 20),
             child: new ListTile(
@@ -75,6 +77,7 @@ class PlanDetailPage extends State<PlanDetail> {
               ),
             ),
           ),
+          new Divider(indent: 36),
           new Container(
             padding: const EdgeInsets.only(left: 20, right: 20),
             child: new ListTile(
@@ -85,27 +88,37 @@ class PlanDetailPage extends State<PlanDetail> {
               ),
             ),
           ),
-          new Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              new Container(
-                padding: const EdgeInsets.only(left: 35),
-                child: Text(
-                  '书单',
-                  style: TextStyle(fontSize: 16),
-                ),
-              ),
-              FlatButton(
-                onPressed: () {},
-                child: Text(
-                  '添加',
-                  style: TextStyle(fontSize: 16, color: Colors.blue),
-                ),
-              ),
-            ],
+          new Divider(indent: 36),
+          new Container(
+            padding: const EdgeInsets.only(left: 36, right: 20, top: 10),
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '书单',
+              style: TextStyle(fontSize: 16),
+            ),
           ),
+          new Divider(indent: 36),
+          new Card(
+              margin: const EdgeInsets.only(right: 20, left: 20, bottom: 10),
+              child: new Container(
+                  child: new ListTile(
+                      leading: Icon(Icons.add),
+                      title: new TextField(
+                        controller: addBookNameController,
+                        decoration:
+                            InputDecoration.collapsed(hintText: '添加书籍名称...'),
+                        onSubmitted: (text) {
+                          dbManager.insertBook(planEntity.id, text, '');
+                          setState(() {
+                            requestPlanBooks();
+                          });
+                          addBookNameController.text = '';
+                        },
+                      )))),
           new Expanded(
-            child: booksView(),
+            child: planBookList == null || planBookList.length == 0
+                ? Text('')
+                : booksView(),
           )
         ],
       ),
@@ -114,18 +127,31 @@ class PlanDetailPage extends State<PlanDetail> {
 
   Widget booksView() {
     return new ListView.builder(
-      itemCount: planBookListl.length,
+      itemCount: planBookList.length,
       itemBuilder: (context, index) {
         return new Card(
-            margin: const EdgeInsets.only(right: 20, left: 20, bottom: 10),
+            margin: const EdgeInsets.only(right: 20, left: 20, bottom: 5),
             child: new Container(
               child: new CheckboxListTile(
                 controlAffinity: ListTileControlAffinity.leading,
-                title: new Text(planBookListl[index].title),
-                value: planBookListl[index].isRead == 1,
+                title: new Text(
+                  planBookList[index].title,
+                  style: TextStyle(
+                      decoration: planBookList[index].isRead == 1
+                          ? TextDecoration.lineThrough
+                          : TextDecoration.none),
+                ),
+                subtitle: planBookList[index].doneDate.isNotEmpty
+                    ? Text('结束时间：${planBookList[index].doneDate}')
+                    : null,
+                value: planBookList[index].isRead == 1,
                 onChanged: (bool value) {
+                  if (!value) return;
+                  dbManager.updatePlanBookRead(planBookList[index].id);
+                  dbManager.updatePlanCurrent(planBookList[index].planId);
                   setState(() {
-                    planBookListl[index].isRead = value ? 1 : 0;
+                    requestPlanBooks();
+                    planEntity.current++;
                   });
                 },
               ),

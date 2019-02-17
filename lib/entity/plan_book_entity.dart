@@ -1,4 +1,4 @@
-class PlanBookEntity {
+class PlanBookEntity implements Comparable<PlanBookEntity> {
   int id;
   int planId;
   String title;
@@ -13,5 +13,10 @@ class PlanBookEntity {
     title = map['title'];
     doneDate = map['done_date'];
     isRead = map['is_read'];
+  }
+
+  @override
+  int compareTo(PlanBookEntity other) {
+    return other.isRead == 0 ? 1 : 0;
   }
 }

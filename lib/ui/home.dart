@@ -5,11 +5,40 @@ import 'create_plan.dart';
 import '../entity/plan_entity.dart';
 import 'dart:ui';
 import '../db/read_plan_db.dart';
+import 'dart:io';
 
 class HomeApp extends StatelessWidget {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  void showInSnackBar(String message) {
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Text(message),
+    ));
+  }
+
+  int lastBackClick = 0;
+  Future<bool> _willPopCallback() async {
+    int now = DateTime.now().millisecondsSinceEpoch;
+    print(now);
+    print(lastBackClick);
+    if (now - lastBackClick > 1500) {
+      lastBackClick = DateTime.now().millisecondsSinceEpoch;
+      print(true);
+      showInSnackBar('再按一次退出应用');
+      return false;
+    } else {
+      print(false);
+      exit(0);
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(home: new HomeAppPage());
+    return new WillPopScope(
+      child: Scaffold(key: _scaffoldKey, body: new HomeAppPage()),
+      onWillPop: _willPopCallback,
+    );
   }
 }
 
@@ -53,8 +82,10 @@ class _HomeAppPage extends StatelessWidget {
         backgroundColor: Colors.transparent,
         appBar: new AppBar(
           elevation: 0,
+          leading: Icon(null),
           backgroundColor: Colors.transparent,
           title: new Text('阅读计划'),
+          centerTitle: true,
           actions: <Widget>[
             IconButton(
               icon: Icon(
