@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../entity/plan_entity.dart';
 import '../entity/plan_book_entity.dart';
 import '../db/read_plan_db.dart';
+import '../event/event_bus.dart';
 
 class PlanDetail extends StatefulWidget {
   final PlanEntity planEntity;
@@ -13,6 +14,7 @@ class PlanDetail extends StatefulWidget {
 }
 
 class PlanDetailPage extends State<PlanDetail> {
+  final EventBus eventBus = new EventBus();
   final PlanEntity planEntity;
   final DBManager dbManager = new DBManager();
   List<PlanBookEntity> planBookList;
@@ -149,6 +151,7 @@ class PlanDetailPage extends State<PlanDetail> {
                   if (!value) return;
                   dbManager.updatePlanBookRead(planBookList[index].id);
                   dbManager.updatePlanCurrent(planBookList[index].planId);
+                  eventBus.emit('updatePlanList');
                   setState(() {
                     requestPlanBooks();
                     planEntity.current++;

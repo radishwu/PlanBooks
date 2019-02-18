@@ -6,6 +6,7 @@ import '../entity/plan_entity.dart';
 import 'dart:ui';
 import '../db/read_plan_db.dart';
 import 'dart:io';
+import '../event/event_bus.dart';
 
 class HomeApp extends StatelessWidget {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -19,15 +20,11 @@ class HomeApp extends StatelessWidget {
   int lastBackClick = 0;
   Future<bool> _willPopCallback() async {
     int now = DateTime.now().millisecondsSinceEpoch;
-    print(now);
-    print(lastBackClick);
     if (now - lastBackClick > 1500) {
       lastBackClick = DateTime.now().millisecondsSinceEpoch;
-      print(true);
       showInSnackBar('再按一次退出应用');
       return false;
     } else {
-      print(false);
       exit(0);
       return false;
     }
@@ -165,23 +162,22 @@ class CardPage extends StatefulWidget {
 
 class CardPageState extends State<CardPage> {
   bool isLoading = true;
+  final EventBus eventBus = new EventBus();
   List<PlanEntity> planList;
 
   @override
   void initState() {
     super.initState();
     getPlanList();
+    eventBus.on('updatePlanList', (arg) {
+      getPlanList();
+    });
   }
 
   @override
   void dispose() {
+    eventBus.off('updatePlanList');
     super.dispose();
-  }
-
-  @override
-  void deactivate() {
-    getPlanList();
-    super.deactivate();
   }
 
   void getPlanList() {

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../db/read_plan_db.dart';
 import 'plan_detail.dart';
 import '../entity/plan_entity.dart';
+import '../event/event_bus.dart';
 
 class CreatePlan extends StatefulWidget {
   @override
@@ -11,6 +12,7 @@ class CreatePlan extends StatefulWidget {
 }
 
 class CreatePlanState extends State<CreatePlan> {
+  final EventBus eventBus = new EventBus();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   TextEditingController nameEditController = TextEditingController();
@@ -61,6 +63,7 @@ class CreatePlanState extends State<CreatePlan> {
                     0,
                     _time);
                 res.then((int id) {
+                  eventBus.emit('updatePlanList');
                   Navigator.pushAndRemoveUntil(
                       context,
                       new MaterialPageRoute(
@@ -72,7 +75,7 @@ class CreatePlanState extends State<CreatePlan> {
                                 0,
                                 _time)),
                       ),
-                      ModalRoute.withName('/'));
+                      ModalRoute.withName('/home'));
                 });
               }
             },
