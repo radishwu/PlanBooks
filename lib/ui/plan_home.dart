@@ -8,8 +8,16 @@ import '../db/read_plan_db.dart';
 import 'dart:io';
 import '../event/event_bus.dart';
 
-class HomeApp extends StatelessWidget {
+class PlanHome extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => PlanHomeState();
+}
+
+class PlanHomeState extends State<PlanHome> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool isLoading = true;
+  final EventBus eventBus = new EventBus();
+  List<PlanEntity> planList;
 
   void showInSnackBar(String message) {
     _scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -31,141 +39,6 @@ class HomeApp extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return new WillPopScope(
-      child: Scaffold(key: _scaffoldKey, body: new HomeAppPage()),
-      onWillPop: _willPopCallback,
-    );
-  }
-}
-
-class HomeAppPage extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() => new HomeAppBgPage();
-}
-
-class HomeAppBgPage extends State<HomeAppPage> {
-  @override
-  Widget build(BuildContext context) {
-    return new Stack(children: <Widget>[
-      new Container(
-        decoration: new BoxDecoration(
-          image: new DecorationImage(
-              fit: BoxFit.cover,
-              image: AssetImage('images/home_default_bg.jpg')),
-        ),
-      ),
-      new Container(
-          child: new BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-        child: Opacity(
-          opacity: 0.7,
-          child: new Container(
-            decoration: new BoxDecoration(
-              color: Colors.black87,
-            ),
-          ),
-        ),
-      )),
-      new _HomeAppPage(),
-    ]);
-  }
-}
-
-class _HomeAppPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return new Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: new AppBar(
-          elevation: 0,
-          leading: Icon(null),
-          backgroundColor: Colors.transparent,
-          title: new Text('阅读计划'),
-          centerTitle: true,
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(
-                Icons.add,
-                color: Colors.white,
-                size: 30,
-              ),
-              onPressed: () => Navigator.push(
-                  context,
-                  new MaterialPageRoute(
-                    builder: (context) => new CreatePlan(),
-                  )),
-            )
-          ],
-        ),
-        body: new Stack(
-          children: <Widget>[new HomePage()],
-        ));
-  }
-}
-
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    var now = new DateTime.now();
-    var formatter = new DateFormat('yyyy年MM月dd日');
-    var today = formatter.format(now);
-    return new Container(
-        padding: const EdgeInsets.only(top: 40),
-        child: new Column(
-          children: <Widget>[
-            new Row(children: <Widget>[
-              new Container(
-                padding: const EdgeInsets.only(left: 55),
-                child: new ClipOval(
-                  child: new SizedBox(
-                    width: 60.0,
-                    height: 60.0,
-                    child: new Image.asset(
-                      'images/home_default_avatar.png',
-                      fit: BoxFit.fill,
-                    ),
-                  ),
-                ),
-              ),
-            ]),
-            new Row(children: <Widget>[
-              new Container(
-                padding: const EdgeInsets.only(left: 55, top: 20),
-                child: new Text(
-                  'Monster',
-                  style: TextStyle(color: Colors.white, fontSize: 26),
-                ),
-              )
-            ]),
-            new Row(
-              children: <Widget>[
-                new Container(
-                  padding: const EdgeInsets.only(left: 55, top: 64),
-                  child: new Text("今天：" + today,
-                      style: TextStyle(color: Colors.white, fontSize: 16)),
-                )
-              ],
-            ),
-            new Expanded(
-              child: CardPage(),
-            )
-          ],
-        ));
-  }
-}
-
-class CardPage extends StatefulWidget {
-  @override
-  CardPageState createState() => CardPageState();
-}
-
-class CardPageState extends State<CardPage> {
-  bool isLoading = true;
-  final EventBus eventBus = new EventBus();
-  List<PlanEntity> planList;
-
-  @override
   void initState() {
     super.initState();
     getPlanList();
@@ -173,12 +46,6 @@ class CardPageState extends State<CardPage> {
       print('event updatePlanList');
       getPlanList();
     });
-  }
-
-  @override
-  void dispose() {
-    eventBus.off('updatePlanList');
-    super.dispose();
   }
 
   void getPlanList() {
@@ -195,7 +62,112 @@ class CardPageState extends State<CardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.fromSize(child: _normalPageView());
+    var now = new DateTime.now();
+    var formatter = new DateFormat('yyyy年MM月dd日');
+    var today = formatter.format(now);
+
+    return new WillPopScope(
+      onWillPop: _willPopCallback,
+      child: new Scaffold(
+        key: _scaffoldKey,
+        body: new Stack(
+          children: <Widget>[
+            new Container(
+              decoration: new BoxDecoration(
+                image: new DecorationImage(
+                    fit: BoxFit.cover,
+                    image: AssetImage('images/home_default_bg.jpg')),
+              ),
+            ),
+            new Container(
+                child: new BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+              child: Opacity(
+                opacity: 0.7,
+                child: new Container(
+                  decoration: new BoxDecoration(
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+            )),
+            new Scaffold(
+              backgroundColor: Colors.transparent,
+              appBar: new AppBar(
+                elevation: 0,
+                leading: Icon(null),
+                backgroundColor: Colors.transparent,
+                title: new Text('计划书单'),
+                centerTitle: true,
+                actions: <Widget>[
+                  IconButton(
+                    icon: Icon(
+                      Icons.add,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                    onPressed: () => Navigator.push(
+                        context,
+                        new MaterialPageRoute(
+                          builder: (context) => new CreatePlan(),
+                        )),
+                  )
+                ],
+              ),
+              body: new Stack(
+                children: <Widget>[
+                  new Container(
+                    padding: const EdgeInsets.only(top: 40),
+                    child: new Column(
+                      children: <Widget>[
+                        new Row(children: <Widget>[
+                          new Container(
+                            padding: const EdgeInsets.only(left: 55),
+                            child: new ClipOval(
+                              child: new SizedBox(
+                                width: 60.0,
+                                height: 60.0,
+                                child: new Image.asset(
+                                  'images/home_default_avatar.png',
+                                  fit: BoxFit.fill,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ]),
+                        new Row(children: <Widget>[
+                          new Container(
+                            padding: const EdgeInsets.only(left: 55, top: 20),
+                            child: new Text(
+                              'Monster',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 26),
+                            ),
+                          )
+                        ]),
+                        new Row(
+                          children: <Widget>[
+                            new Container(
+                              padding: const EdgeInsets.only(left: 55, top: 64),
+                              child: new Text("今天：" + today,
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16)),
+                            )
+                          ],
+                        ),
+                        new Expanded(
+                          child: SizedBox.fromSize(child: _normalPageView()),
+                        )
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
   }
 
   PageView _normalPageView() {
