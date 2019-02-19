@@ -170,6 +170,7 @@ class CardPageState extends State<CardPage> {
     super.initState();
     getPlanList();
     eventBus.on('updatePlanList', (arg) {
+      print('event updatePlanList');
       getPlanList();
     });
   }

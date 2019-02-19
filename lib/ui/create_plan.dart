@@ -69,7 +69,7 @@ class CreatePlanState extends State<CreatePlan> {
                       new MaterialPageRoute(
                         builder: (context) => new PlanDetail(
                             planEntity: PlanEntity.formParams(
-                                1,
+                                id,
                                 nameEditController.text,
                                 int.parse(numEditController.text),
                                 0,
