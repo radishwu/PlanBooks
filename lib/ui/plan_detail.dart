@@ -3,6 +3,7 @@ import '../entity/plan_entity.dart';
 import '../entity/plan_book_entity.dart';
 import '../db/read_plan_db.dart';
 import '../event/event_bus.dart';
+import 'package:intl/intl.dart';
 
 class PlanDetail extends StatefulWidget {
   final PlanEntity planEntity;
@@ -108,7 +109,7 @@ class PlanDetailPage extends State<PlanDetail> {
                       title: new TextField(
                         controller: addBookNameController,
                         decoration:
-                            InputDecoration.collapsed(hintText: '添加书籍名称...'),
+                            InputDecoration.collapsed(hintText: '添加图书名称...'),
                         onSubmitted: (text) {
                           dbManager.insertBook(planEntity.id, text, '');
                           setState(() {
@@ -144,7 +145,23 @@ class PlanDetailPage extends State<PlanDetail> {
                           : TextDecoration.none),
                 ),
                 subtitle: planBookList[index].doneDate.isNotEmpty
-                    ? Text('结束时间：${planBookList[index].doneDate}')
+                    ? new Row(
+                        children: <Widget>[
+                          Text('结束时间：${planBookList[index].doneDate}'),
+                          Padding(
+                            padding: EdgeInsets.only(left: 10),
+                          ),
+                          InkWell(
+                            child: Text(
+                              '修改',
+                              style: TextStyle(color: Colors.blue),
+                            ),
+                            onTap: () {
+                              _selectDate(context, planBookList[index].id);
+                            },
+                          )
+                        ],
+                      )
                     : null,
                 value: planBookList[index].isRead == 1,
                 onChanged: (bool value) {
@@ -161,5 +178,25 @@ class PlanDetailPage extends State<PlanDetail> {
             ));
       },
     );
+  }
+
+  var _time;
+
+  Future<Null> _selectDate(BuildContext context, int id) async {
+    var firstDate = DateTime(2018, 1, 1);
+    var initialDate = DateTime.now().add(new Duration(days: 7));
+    final DateTime _picked = await showDatePicker(
+        context: context,
+        firstDate: firstDate,
+        initialDate: initialDate,
+        lastDate:
+            DateTime(initialDate.year + 2, initialDate.month, initialDate.day));
+
+    setState(() {
+      var formatter = new DateFormat('yyyy年MM月dd日');
+      _time = formatter.format(_picked);
+      dbManager.updatePlanBookDoneDate(id, _time);
+      requestPlanBooks();
+    });
   }
 }

@@ -82,4 +82,11 @@ class DBManager {
         'update book_info set is_read=1, done_date=? where id=?',
         [doneTime, id]);
   }
+
+  Future<int> updatePlanBookDoneDate(int id, String doneDate) async {
+    final db = await _dbFile;
+    return await db.rawUpdate(
+        'update book_info set done_date=? where id=?',
+        [doneDate, id]);
+  }
 }

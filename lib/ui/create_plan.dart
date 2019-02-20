@@ -94,7 +94,7 @@ class CreatePlanState extends State<CreatePlan> {
                         controller: nameEditController,
                         decoration: InputDecoration(
                             labelStyle: TextStyle(color: Color(0xff666666)),
-                            helperText: '给自己的读书计划起个名字',
+                            helperText: '给自己的阅读计划起个名字',
                             labelText: '名称'),
                         autofocus: false,
                         textInputAction: TextInputAction.next,

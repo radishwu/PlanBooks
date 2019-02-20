@@ -139,7 +139,7 @@ class PlanHomeState extends State<PlanHome> {
                           new Container(
                             padding: const EdgeInsets.only(left: 55, top: 20),
                             child: new Text(
-                              'Monster',
+                              'Just reading.',
                               style:
                                   TextStyle(color: Colors.white, fontSize: 26),
                             ),
@@ -311,7 +311,7 @@ class PlanHomeState extends State<PlanHome> {
           new Container(
             padding: EdgeInsets.only(top: 10),
             child: new Text(
-              '点击+创建你的读书计划吧',
+              '点击+创建你的阅读计划吧',
               style: TextStyle(color: Color(0xff999999), fontSize: 12),
             ),
           )
