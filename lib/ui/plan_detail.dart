@@ -51,6 +51,15 @@ class PlanDetailPage extends State<PlanDetail> {
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(
+              Icons.info_outline,
+              // color: Colors.white,
+            ),
+            onPressed: () {},
+          )
+        ],
         elevation: 2,
         backgroundColor: Colors.black87,
         title: new Text(
@@ -59,50 +68,65 @@ class PlanDetailPage extends State<PlanDetail> {
       ),
       body: new Column(
         children: <Widget>[
-          new Container(
-            padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
-            child: new ListTile(
-              title: Text('阅读目标本数'),
-              subtitle: Text(
-                planEntity.total.toString(),
-                style: TextStyle(fontSize: 18),
-              ),
-            ),
-          ),
-          new Divider(indent: 36),
-          new Container(
-            padding: const EdgeInsets.only(left: 20, right: 20),
-            child: new ListTile(
-              title: Text('已读本数'),
-              subtitle: Text(
-                planEntity.current.toString(),
-                style: TextStyle(fontSize: 18),
-              ),
-            ),
-          ),
-          new Divider(indent: 36),
-          new Container(
-            padding: const EdgeInsets.only(left: 20, right: 20),
-            child: new ListTile(
-              title: Text('结束时间'),
-              subtitle: Text(
-                planEntity.endDate,
-                style: TextStyle(fontSize: 18),
-              ),
-            ),
-          ),
-          new Divider(indent: 36),
-          new Container(
-            padding: const EdgeInsets.only(left: 36, right: 20, top: 10),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              '书单',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-          new Divider(indent: 36),
-          new Card(
-              margin: const EdgeInsets.only(right: 20, left: 20, bottom: 10),
+          // new Container(
+          //   padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
+          //   child: new ListTile(
+          //     title: Text('阅读目标本数'),
+          //     subtitle: Text(
+          //       planEntity.total.toString(),
+          //       style: TextStyle(fontSize: 18),
+          //     ),
+          //   ),
+          // ),
+          // new Divider(indent: 36),
+          // new Container(
+          //   padding: const EdgeInsets.only(left: 20, right: 20),
+          //   child: new ListTile(
+          //     title: Text('已读本数'),
+          //     subtitle: Text(
+          //       planEntity.current.toString(),
+          //       style: TextStyle(fontSize: 18),
+          //     ),
+          //   ),
+          // ),
+          // new Divider(indent: 36),
+          // new Container(
+          //   padding: const EdgeInsets.only(left: 20, right: 20),
+          //   child: new ListTile(
+          //     title: Text('结束时间'),
+          //     subtitle: Text(
+          //       planEntity.endDate,
+          //       style: TextStyle(fontSize: 18),
+          //     ),
+          //   ),
+          // ),
+          // new Divider(indent: 36),
+          // new Container(
+          //   padding: const EdgeInsets.only(left: 36, right: 20, top: 10),
+          //   alignment: Alignment.centerLeft,
+          //   child: Text(
+          //     '书单',
+          //     style: TextStyle(fontSize: 16),
+          //   ),
+          // ),
+          // new Divider(indent: 36),
+          new Expanded(
+            child: booksView(),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget booksView() {
+    return new ListView.builder(
+      itemCount: planBookList == null ? 1 : planBookList.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return new Card(
+              color: Color(0xFFF6F6F6),
+              margin: const EdgeInsets.only(
+                  right: 20, left: 20, bottom: 15, top: 20),
               child: new Container(
                   child: new ListTile(
                       leading: Icon(Icons.add),
@@ -117,65 +141,68 @@ class PlanDetailPage extends State<PlanDetail> {
                           });
                           addBookNameController.text = '';
                         },
-                      )))),
-          new Expanded(
-            child: planBookList == null || planBookList.length == 0
-                ? Text('')
-                : booksView(),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget booksView() {
-    return new ListView.builder(
-      itemCount: planBookList.length,
-      itemBuilder: (context, index) {
-        return new Card(
-            margin: const EdgeInsets.only(right: 20, left: 20, bottom: 5),
-            child: new Container(
-              child: new CheckboxListTile(
-                controlAffinity: ListTileControlAffinity.leading,
-                title: new Text(
-                  planBookList[index].title,
-                  style: TextStyle(
-                      decoration: planBookList[index].isRead == 1
-                          ? TextDecoration.lineThrough
-                          : TextDecoration.none),
-                ),
-                subtitle: planBookList[index].doneDate.isNotEmpty
-                    ? new Row(
-                        children: <Widget>[
-                          Text('结束时间：${planBookList[index].doneDate}'),
-                          Padding(
-                            padding: EdgeInsets.only(left: 10),
-                          ),
-                          InkWell(
-                            child: Text(
-                              '修改',
-                              style: TextStyle(color: Colors.blue),
-                            ),
-                            onTap: () {
-                              _selectDate(context, planBookList[index].id);
-                            },
+                      ))));
+        } else {
+          int i = index - 1;
+          return new Dismissible(
+            key: new Key(planBookList[i].id.toString()),
+            onDismissed: (direction) async {
+              await dbManager.deletePlanBook(planBookList[i].id);
+              if (planBookList[i].isRead == 1) {
+                await dbManager.updatePlanCurrent(planBookList[i].planId);
+                eventBus.emit('updatePlanList');
+                setState(() {
+                  planEntity.current--;
+                });
+              }
+              planBookList.removeAt(i);
+            },
+            child: new Card(
+                margin: const EdgeInsets.only(right: 20, left: 20, bottom: 5),
+                child: new Container(
+                  child: new CheckboxListTile(
+                    controlAffinity: ListTileControlAffinity.leading,
+                    title: new Text(
+                      planBookList[i].title,
+                      style: TextStyle(
+                          decoration: planBookList[i].isRead == 1
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none),
+                    ),
+                    subtitle: planBookList[i].doneDate.isNotEmpty
+                        ? new Row(
+                            children: <Widget>[
+                              Text('结束时间：${planBookList[i].doneDate}'),
+                              Padding(
+                                padding: EdgeInsets.only(left: 10),
+                              ),
+                              InkWell(
+                                child: Text(
+                                  '修改',
+                                  style: TextStyle(color: Colors.blue),
+                                ),
+                                onTap: () {
+                                  _selectDate(context, planBookList[i].id);
+                                },
+                              )
+                            ],
                           )
-                        ],
-                      )
-                    : null,
-                value: planBookList[index].isRead == 1,
-                onChanged: (bool value) {
-                  if (!value) return;
-                  dbManager.updatePlanBookRead(planBookList[index].id);
-                  dbManager.updatePlanCurrent(planBookList[index].planId);
-                  eventBus.emit('updatePlanList');
-                  setState(() {
-                    requestPlanBooks();
-                    planEntity.current++;
-                  });
-                },
-              ),
-            ));
+                        : null,
+                    value: planBookList[i].isRead == 1,
+                    onChanged: (bool value) async {
+                      if (!value) return;
+                      await dbManager.updatePlanBookRead(planBookList[i].id);
+                      await dbManager.updatePlanCurrent(planBookList[i].planId);
+                      eventBus.emit('updatePlanList');
+                      setState(() {
+                        requestPlanBooks();
+                        planEntity.current++;
+                      });
+                    },
+                  ),
+                )),
+          );
+        }
       },
     );
   }

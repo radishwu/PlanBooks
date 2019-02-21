@@ -53,8 +53,10 @@ class DBManager {
 
   Future<int> updatePlanCurrent(int id) async {
     final db = await _dbFile;
+    int count = Sqflite.firstIntValue(await db.rawQuery(
+        'SELECT COUNT(*) FROM book_info where plan_id=$id and is_read=1'));
     return await db
-        .rawUpdate('update plan_info set current=current+1 where id=?', [id]);
+        .rawUpdate('update plan_info set current=$count where id=?', [id]);
   }
 
   Future<int> insertBook(int planId, String bookTitle, String doneDate) async {
@@ -86,7 +88,11 @@ class DBManager {
   Future<int> updatePlanBookDoneDate(int id, String doneDate) async {
     final db = await _dbFile;
     return await db.rawUpdate(
-        'update book_info set done_date=? where id=?',
-        [doneDate, id]);
+        'update book_info set done_date=? where id=?', [doneDate, id]);
+  }
+
+  Future<int> deletePlanBook(int id) async {
+    final db = await _dbFile;
+    return await db.rawDelete('DELETE FROM book_info WHERE id = ?', [id]);
   }
 }
