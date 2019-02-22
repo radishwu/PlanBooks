@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import '../entity/plan_entity.dart';
-import '../entity/plan_book_entity.dart';
-import '../db/read_plan_db.dart';
-import '../event/event_bus.dart';
-import 'package:intl/intl.dart';
+import 'plan_detail_panel.dart';
 
 class PlanDetail extends StatefulWidget {
   final PlanEntity planEntity;
@@ -14,34 +11,31 @@ class PlanDetail extends StatefulWidget {
   State<StatefulWidget> createState() => new PlanDetailPage(planEntity);
 }
 
-class PlanDetailPage extends State<PlanDetail> {
-  final EventBus eventBus = new EventBus();
+class PlanDetailPage extends State<PlanDetail>
+    with SingleTickerProviderStateMixin {
+  AnimationController controller;
   final PlanEntity planEntity;
-  final DBManager dbManager = new DBManager();
-  List<PlanBookEntity> planBookList;
-  bool isLoading = true;
 
   PlanDetailPage(this.planEntity);
 
   @override
   void initState() {
     super.initState();
-    requestPlanBooks();
+    controller = new AnimationController(
+        vsync: this, duration: Duration(milliseconds: 100), value: 1.0);
   }
 
-  void requestPlanBooks() {
-    print('plan book list request.');
-    Future<List<PlanBookEntity>> res = dbManager.getPlanBook(planEntity.id);
-    res.then((List<PlanBookEntity> planBooks) {
-      setState(() {
-        isLoading = false;
-        planBooks.sort();
-        this.planBookList = planBooks;
-      });
-    });
+  @override
+  void dispose() {
+    super.dispose();
+    controller.dispose();
   }
 
-  final addBookNameController = TextEditingController();
+  bool get isPanelVisible {
+    final AnimationStatus status = controller.status;
+    return status == AnimationStatus.completed ||
+        status == AnimationStatus.forward;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,177 +47,25 @@ class PlanDetailPage extends State<PlanDetail> {
         ),
         actions: <Widget>[
           IconButton(
-            icon: Icon(
-              Icons.info_outline,
-              // color: Colors.white,
+            icon: new AnimatedIcon(
+              icon: AnimatedIcons.close_menu,
+              progress: controller.view,
             ),
-            onPressed: () {},
+            onPressed: () {
+              controller.fling(velocity: isPanelVisible ? -1.0 : 1.0);
+            },
           )
         ],
-        elevation: 2,
+        elevation: 2.0,
         backgroundColor: Colors.black87,
         title: new Text(
           planEntity.name,
         ),
       ),
-      body: new Column(
-        children: <Widget>[
-          // new Container(
-          //   padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
-          //   child: new ListTile(
-          //     title: Text('阅读目标本数'),
-          //     subtitle: Text(
-          //       planEntity.total.toString(),
-          //       style: TextStyle(fontSize: 18),
-          //     ),
-          //   ),
-          // ),
-          // new Divider(indent: 36),
-          // new Container(
-          //   padding: const EdgeInsets.only(left: 20, right: 20),
-          //   child: new ListTile(
-          //     title: Text('已读本数'),
-          //     subtitle: Text(
-          //       planEntity.current.toString(),
-          //       style: TextStyle(fontSize: 18),
-          //     ),
-          //   ),
-          // ),
-          // new Divider(indent: 36),
-          // new Container(
-          //   padding: const EdgeInsets.only(left: 20, right: 20),
-          //   child: new ListTile(
-          //     title: Text('结束时间'),
-          //     subtitle: Text(
-          //       planEntity.endDate,
-          //       style: TextStyle(fontSize: 18),
-          //     ),
-          //   ),
-          // ),
-          // new Divider(indent: 36),
-          // new Container(
-          //   padding: const EdgeInsets.only(left: 36, right: 20, top: 10),
-          //   alignment: Alignment.centerLeft,
-          //   child: Text(
-          //     '书单',
-          //     style: TextStyle(fontSize: 16),
-          //   ),
-          // ),
-          // new Divider(indent: 36),
-          new Expanded(
-            child: booksView(),
-          )
-        ],
+      body: new PlanDetailPanel(
+        controller: controller,
+        planEntity: planEntity,
       ),
     );
-  }
-
-  Widget booksView() {
-    return new ListView.builder(
-      itemCount: planBookList == null ? 1 : planBookList.length + 1,
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return new Card(
-              color: Color(0xFFF6F6F6),
-              margin: const EdgeInsets.only(
-                  right: 20, left: 20, bottom: 15, top: 20),
-              child: new Container(
-                  child: new ListTile(
-                      leading: Icon(Icons.add),
-                      title: new TextField(
-                        controller: addBookNameController,
-                        decoration:
-                            InputDecoration.collapsed(hintText: '添加图书名称...'),
-                        onSubmitted: (text) {
-                          dbManager.insertBook(planEntity.id, text, '');
-                          setState(() {
-                            requestPlanBooks();
-                          });
-                          addBookNameController.text = '';
-                        },
-                      ))));
-        } else {
-          int i = index - 1;
-          return new Dismissible(
-            key: new Key(planBookList[i].id.toString()),
-            onDismissed: (direction) async {
-              await dbManager.deletePlanBook(planBookList[i].id);
-              if (planBookList[i].isRead == 1) {
-                await dbManager.updatePlanCurrent(planBookList[i].planId);
-                eventBus.emit('updatePlanList');
-                setState(() {
-                  planEntity.current--;
-                });
-              }
-              planBookList.removeAt(i);
-            },
-            child: new Card(
-                margin: const EdgeInsets.only(right: 20, left: 20, bottom: 5),
-                child: new Container(
-                  child: new CheckboxListTile(
-                    controlAffinity: ListTileControlAffinity.leading,
-                    title: new Text(
-                      planBookList[i].title,
-                      style: TextStyle(
-                          decoration: planBookList[i].isRead == 1
-                              ? TextDecoration.lineThrough
-                              : TextDecoration.none),
-                    ),
-                    subtitle: planBookList[i].doneDate.isNotEmpty
-                        ? new Row(
-                            children: <Widget>[
-                              Text('结束时间：${planBookList[i].doneDate}'),
-                              Padding(
-                                padding: EdgeInsets.only(left: 10),
-                              ),
-                              InkWell(
-                                child: Text(
-                                  '修改',
-                                  style: TextStyle(color: Colors.blue),
-                                ),
-                                onTap: () {
-                                  _selectDate(context, planBookList[i].id);
-                                },
-                              )
-                            ],
-                          )
-                        : null,
-                    value: planBookList[i].isRead == 1,
-                    onChanged: (bool value) async {
-                      if (!value) return;
-                      await dbManager.updatePlanBookRead(planBookList[i].id);
-                      await dbManager.updatePlanCurrent(planBookList[i].planId);
-                      eventBus.emit('updatePlanList');
-                      setState(() {
-                        requestPlanBooks();
-                        planEntity.current++;
-                      });
-                    },
-                  ),
-                )),
-          );
-        }
-      },
-    );
-  }
-
-  var _time;
-
-  Future<Null> _selectDate(BuildContext context, int id) async {
-    var firstDate = DateTime(2018, 1, 1);
-    var initialDate = DateTime.now().add(new Duration(days: 7));
-    final DateTime _picked = await showDatePicker(
-        context: context,
-        firstDate: firstDate,
-        initialDate: initialDate,
-        lastDate:
-            DateTime(initialDate.year + 2, initialDate.month, initialDate.day));
-
-    setState(() {
-      var formatter = new DateFormat('yyyy年MM月dd日');
-      _time = formatter.format(_picked);
-      dbManager.updatePlanBookDoneDate(id, _time);
-      requestPlanBooks();
-    });
   }
 }
