@@ -76,6 +76,18 @@ class DBManager {
     return res;
   }
 
+  Future<int> updatePlanInfo(PlanEntity planEntity) async {
+    final db = await _dbFile;
+    return await db.rawUpdate(
+        'update plan_info set name=?, total=?, end_date=? where id=?',
+        [planEntity.name, planEntity.total, planEntity.endDate, planEntity.id]);
+  }
+
+  Future<int> deletePlanInfo(int id) async {
+    final db = await _dbFile;
+    return await db.rawDelete('DELETE FROM plan_info where id = ?', [id]);
+  }
+
   Future<int> updatePlanBookRead(int id) async {
     final db = await _dbFile;
     var formatter = new DateFormat('yyyy年MM月dd日');

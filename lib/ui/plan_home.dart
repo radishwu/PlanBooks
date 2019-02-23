@@ -109,7 +109,8 @@ class PlanHomeState extends State<PlanHome> {
                     onPressed: () => Navigator.push(
                         context,
                         new MaterialPageRoute(
-                          builder: (context) => new CreatePlan(),
+                          builder: (context) =>
+                              new CreatePlan(planEntity: null),
                         )),
                   )
                 ],
@@ -148,7 +149,7 @@ class PlanHomeState extends State<PlanHome> {
                         new Row(
                           children: <Widget>[
                             new Container(
-                              padding: const EdgeInsets.only(left: 55, top: 64),
+                              padding: const EdgeInsets.only(left: 55, top: 84),
                               child: new Text("今天：" + today,
                                   style: TextStyle(
                                       color: Colors.white, fontSize: 16)),
@@ -226,20 +227,95 @@ class PlanHomeState extends State<PlanHome> {
   }
 
   Widget _planView(int index) {
+    final GlobalKey cardMoreKey = GlobalKey();
     return Stack(
       children: <Widget>[
+        new Align(
+          alignment: FractionalOffset.topRight,
+          child: new Container(
+            margin: const EdgeInsets.only(top: 7),
+            child: new IconButton(
+              key: cardMoreKey,
+              icon: Icon(
+                Icons.more_vert,
+                color: new Color(0xff666666),
+              ),
+              onPressed: () async {
+                RenderBox bar = cardMoreKey.currentContext.findRenderObject();
+                final position = bar.localToGlobal(Offset.zero);
+                final selected = await showMenu(
+                    context: context,
+                    position: RelativeRect.fromLTRB(
+                        position.dx, position.dy, 0.0, 0.0),
+                    items: <PopupMenuItem<String>>[
+                      const PopupMenuItem<String>(
+                        child: Text('删除'),
+                        value: 'delete',
+                      ),
+                      const PopupMenuItem<String>(
+                        child: Text('编辑'),
+                        value: 'edit',
+                      ),
+                    ]);
+                if (selected != null) {
+                  if (selected == 'edit') {
+                    Navigator.push(
+                        context,
+                        new MaterialPageRoute(
+                          builder: (context) =>
+                              new CreatePlan(planEntity: planList[index]),
+                        ));
+                  } else if (selected == 'delete') {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) => new AlertDialog(
+                              content: new Text('确定删除该阅读计划？',
+                                  style: TextStyle(
+                                      color: Theme.of(context).primaryColor)),
+                              actions: <Widget>[
+                                new FlatButton(
+                                  onPressed: () async {
+                                    DBManager dbManager = new DBManager();
+                                    await dbManager
+                                        .deletePlanInfo(planList[index].id);
+                                    getPlanList();
+                                    Navigator.pop(context);
+                                  },
+                                  child: new Text('确定',
+                                      style: TextStyle(
+                                          color:
+                                              Theme.of(context).primaryColor)),
+                                ),
+                                new FlatButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: new Text(
+                                    '取消',
+                                    style: TextStyle(color: Color(0xff999999)),
+                                  ),
+                                )
+                              ],
+                            ));
+                  }
+                }
+              },
+            ),
+          ),
+        ),
         new Column(
           children: <Widget>[
             new Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 new Container(
-                  padding: const EdgeInsets.only(left: 20, top: 30),
+                  padding: const EdgeInsets.only(left: 20, top: 20),
                   child: new Text(
                     "结束日期：",
                     style: new TextStyle(
                         fontSize: 16.0, color: new Color(0xff666666)),
                   ),
-                )
+                ),
               ],
             ),
             new Row(

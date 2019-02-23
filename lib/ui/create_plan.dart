@@ -7,13 +7,21 @@ import '../entity/plan_entity.dart';
 import '../event/event_bus.dart';
 
 class CreatePlan extends StatefulWidget {
+  final PlanEntity planEntity;
+
+  CreatePlan({this.planEntity});
+
   @override
-  State<StatefulWidget> createState() => CreatePlanState();
+  State<StatefulWidget> createState() =>
+      CreatePlanState(planEntity: planEntity);
 }
 
 class CreatePlanState extends State<CreatePlan> {
   final EventBus eventBus = new EventBus();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final PlanEntity planEntity;
+
+  CreatePlanState({this.planEntity});
 
   TextEditingController nameEditController = TextEditingController();
   TextEditingController numEditController = TextEditingController();
@@ -22,6 +30,16 @@ class CreatePlanState extends State<CreatePlan> {
     _scaffoldKey.currentState.showSnackBar(SnackBar(
       content: Text(message),
     ));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (planEntity != null) {
+      nameEditController.text = planEntity.name;
+      numEditController.text = planEntity.total.toString();
+      _time = planEntity.endDate;
+    }
   }
 
   @override
@@ -36,7 +54,7 @@ class CreatePlanState extends State<CreatePlan> {
           elevation: 2,
           backgroundColor: Colors.black87,
           title: new Text(
-            '新建计划',
+            planEntity == null ? '新建计划' : '编辑计划',
           ),
         ),
         bottomNavigationBar: BottomAppBar(
@@ -56,27 +74,11 @@ class CreatePlanState extends State<CreatePlan> {
               } else if (_time == null || _time == "") {
                 showInSnackBar("请选择结束日期");
               } else {
-                DBManager dbManager = new DBManager();
-                Future<int> res = dbManager.insertPlanInfo(
-                    nameEditController.text,
-                    int.parse(numEditController.text),
-                    0,
-                    _time);
-                res.then((int id) {
-                  eventBus.emit('updatePlanList');
-                  Navigator.pushAndRemoveUntil(
-                      context,
-                      new MaterialPageRoute(
-                        builder: (context) => new PlanDetail(
-                            planEntity: PlanEntity.formParams(
-                                id,
-                                nameEditController.text,
-                                int.parse(numEditController.text),
-                                0,
-                                _time)),
-                      ),
-                      ModalRoute.withName('/home'));
-                });
+                if (planEntity == null) {
+                  createPlan();
+                } else {
+                  editPlan();
+                }
               }
             },
           ),
@@ -145,8 +147,11 @@ class CreatePlanState extends State<CreatePlan> {
   var _time;
 
   Future<Null> _selectDate(BuildContext context) async {
+    var formatter = new DateFormat('yyyy年MM月dd日');
     var firstDate = DateTime.now().add(new Duration(days: 6));
-    var initialDate = DateTime.now().add(new Duration(days: 7));
+    var initialDate = _time == null
+        ? DateTime.now().add(new Duration(days: 7))
+        : formatter.parse(_time);
     final DateTime _picked = await showDatePicker(
         context: context,
         firstDate: firstDate,
@@ -157,6 +162,43 @@ class CreatePlanState extends State<CreatePlan> {
     setState(() {
       var formatter = new DateFormat('yyyy年MM月dd日');
       _time = formatter.format(_picked);
+    });
+  }
+
+  void createPlan() {
+    DBManager dbManager = new DBManager();
+    Future<int> res = dbManager.insertPlanInfo(
+        nameEditController.text, int.parse(numEditController.text), 0, _time);
+    res.then((int id) {
+      eventBus.emit('updatePlanList');
+      Navigator.pushAndRemoveUntil(
+          context,
+          new MaterialPageRoute(
+            builder: (context) => new PlanDetail(
+                planEntity: PlanEntity.formParams(id, nameEditController.text,
+                    int.parse(numEditController.text), 0, _time)),
+          ),
+          ModalRoute.withName('/home'));
+    });
+  }
+
+  void editPlan() {
+    DBManager dbManager = new DBManager();
+    var _planEntity = PlanEntity.formParams(
+        planEntity.id,
+        nameEditController.text,
+        int.parse(numEditController.text),
+        planEntity.current,
+        _time);
+    Future<int> res = dbManager.updatePlanInfo(_planEntity);
+    res.then((int row) {
+      eventBus.emit('updatePlanList');
+      Navigator.pushAndRemoveUntil(
+          context,
+          new MaterialPageRoute(
+            builder: (context) => new PlanDetail(planEntity: _planEntity),
+          ),
+          ModalRoute.withName('/home'));
     });
   }
 }
