@@ -1,4 +1,4 @@
-package com.example.readingplan;
+package com.monster.planbooks;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
