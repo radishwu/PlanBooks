@@ -31,6 +31,8 @@ class DBManager {
           "CREATE TABLE plan_info (id INTEGER PRIMARY KEY, name TEXT, total INTEGER, current INTEGER, end_date TEXT)");
       await db.execute(
           "CREATE TABLE book_info (id INTEGER PRIMARY KEY, plan_id INTEGER, title TEXT, done_date TEXT, is_read INTEGER)");
+      await db.execute(
+          "CREATE TABLE library_book_info (id INTEGER PRIMARY KEY, title TEXT, subtitle TEXT, author TEXT, translator TEXT, publisher TEXT, pub_date TEXT, cover TEXT, summary TEXT)");
     });
     return database;
   }
